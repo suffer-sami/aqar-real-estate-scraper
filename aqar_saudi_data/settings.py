@@ -7,17 +7,29 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ZYTE_API_KEY = os.getenv("ZYTE_API_KEY")
+if not ZYTE_API_KEY:
+    raise ValueError("ZYTE_API_KEY is not set in the environment variables")
+
+
 BOT_NAME = "aqar_saudi_data"
 
 SPIDER_MODULES = ["aqar_saudi_data.spiders"]
 NEWSPIDER_MODULE = "aqar_saudi_data.spiders"
 
+ADDONS = {
+    "scrapy_zyte_api.Addon": 500,
+}
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "aqar_saudi_data (+http://www.yourdomain.com)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
