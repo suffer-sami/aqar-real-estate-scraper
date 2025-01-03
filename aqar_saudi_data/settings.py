@@ -9,6 +9,7 @@
 
 import os
 from dotenv import load_dotenv
+from aqar_saudi_data.items import AqarItem
 
 load_dotenv()
 
@@ -102,3 +103,20 @@ ROBOTSTXT_OBEY = False
 # Set settings whose default value is deprecated to a future-proof value
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# CSV Export Settings
+FEEDS = {
+    'saudi_real_estate.csv': {
+        'format': 'csv',
+        'encoding': 'utf-8-sig',
+        'store_empty': False,
+        'fields': AqarItem.fields_order,
+        'overwrite': False,  # This ensures appending to existing file
+    }
+}
+
+FEED_EXPORTERS = {
+    'csv': 'scrapy.exporters.CsvItemExporter',
+}
+FEED_EXPORT_FIELDS = AqarItem.fields_order
+FEED_EXPORT_FIELDS_OUTPUT_ORDER = AqarItem.fields_order
