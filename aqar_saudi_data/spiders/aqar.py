@@ -1,8 +1,8 @@
 import json
 import os
-from uuid import uuid4
 import scrapy
-
+from aqar_saudi_data.items import AqarItem, AqarItemLoader
+BASE_URL = 'https://sa.aqar.fm'
 
 class AqarSpider(scrapy.Spider):
     name = "aqar"
@@ -14,11 +14,10 @@ class AqarSpider(scrapy.Spider):
         'app-version': '0.20.44',
         'content-type': 'application/json',
         'dpr': '1.25',
-        'origin': 'https://sa.aqar.fm',
+        'origin': BASE_URL,
         'priority': 'u=1, i',
-        'referer': 'https://sa.aqar.fm/',
+        'referer': BASE_URL,
         'req-app': 'web',
-        'req-device-token': str(uuid4()),
     }
 
     meta = {
@@ -32,7 +31,7 @@ class AqarSpider(scrapy.Spider):
     def start_requests(self):
         json_data = self.generate_json_data(from_value=0, size_value=0)
         yield scrapy.Request(
-            url='https://sa.aqar.fm/graphql',
+            url=f'{BASE_URL}/graphql',
             method='POST',
             headers=self.headers,
             body=json.dumps(json_data),
@@ -50,10 +49,10 @@ class AqarSpider(scrapy.Spider):
             return
 
         page_size = int(os.getenv('PAGE_SIZE', 20))
-        for i in range(0, total, page_size)[:5]:
+        for i in range(0, total, page_size):
             json_data = self.generate_json_data(from_value=i, size_value=page_size)
             yield response.follow(
-                url='https://sa.aqar.fm/graphql',
+                url=f'{BASE_URL}/graphql',
                 method='POST',
                 headers=self.headers,
                 body=json.dumps(json_data),
@@ -62,7 +61,80 @@ class AqarSpider(scrapy.Spider):
             )
 
     def parse(self, response):
-        self.logger.info(response.text)
+        data = json.loads(response.text)
+        for listing in data.get('data', {}).get('Web', {}).get('find', {}).get('listings', []):
+            loader = AqarItemLoader(item=AqarItem())
+            
+            # Basic Information
+            loader.add_value('id', listing.get('id'))
+            loader.add_value('url', f'{BASE_URL}{listing.get("path")}')
+            loader.add_value('title', listing.get('title'))
+            loader.add_value('description', listing.get('content'))
+            loader.add_value('category', listing.get('path', '').strip('/').split('/')[0] if listing.get('path') else None)
+            loader.add_value('category_id', listing.get('category'))
+            loader.add_value('type', listing.get('type'))
+            loader.add_value('status', listing.get('status'))
+            loader.add_value('create_time', listing.get('create_time'))
+            loader.add_value('last_update', listing.get('last_update'))
+            loader.add_value('refresh', listing.get('refresh'))
+            loader.add_value('published_at', listing.get('published_at'))
+            
+            # Location Information
+            loader.add_value('address', listing.get('address'))
+            loader.add_value('city', listing.get('city'))
+            loader.add_value('city_id', listing.get('city_id'))
+            loader.add_value('district', listing.get('district'))
+            loader.add_value('district_id', listing.get('district_id'))
+            loader.add_value('direction', listing.get('direction'))
+            loader.add_value('direction_id', listing.get('direction_id'))
+            loader.add_value('province_id', listing.get('province_id'))
+            location = listing.get('location', {})
+            loader.add_value('latitude', location.get('lat'))
+            loader.add_value('longitude', location.get('lng'))
+            loader.add_value('street_width', listing.get('street_width'))
+            loader.add_value('street_direction', listing.get('street_direction'))
+            
+            # Property Details
+            loader.add_value('area', listing.get('area'))
+            loader.add_value('price', listing.get('price'))
+            loader.add_value('rent_period', listing.get('rent_period'))
+            loader.add_value('property_age', listing.get('age'))
+            loader.add_value('rooms', listing.get('rooms'))
+            loader.add_value('bedrooms', listing.get('beds'))
+            loader.add_value('bathrooms', listing.get('wc'))
+            loader.add_value('halls', listing.get('livings'))
+            loader.add_value('furnished', listing.get('furnished'))
+            loader.add_value('kitchen', listing.get('ketchen'))
+            loader.add_value('ac', listing.get('ac'))
+            
+            # Additional Features
+            loader.add_value('parking', listing.get('car_entrance'))
+            loader.add_value('family', listing.get('family'))
+            loader.add_value('duplex', listing.get('duplex'))
+            loader.add_value('basement', listing.get('basement'))
+            loader.add_value('driver_room', listing.get('driver'))
+            loader.add_value('maid_room', listing.get('maid'))
+            loader.add_value('pool', listing.get('pool'))
+            loader.add_value('elevator', listing.get('lift'))
+            loader.add_value('tent', listing.get('tent'))
+            loader.add_value('yard', listing.get('backyard'))
+            
+            # Property Documents
+            loader.add_value('deed_number', listing.get('deed_number'))
+            loader.add_value('plan_no', listing.get('plan_no'))
+            
+            # Utilities
+            loader.add_value('water_availability', listing.get('water_availability'))
+            loader.add_value('electrical_availability', listing.get('electrical_availability'))
+            loader.add_value('drainage_availability', listing.get('drainage_availability'))
+            
+            # Additional Features
+            loader.add_value('private_roof', listing.get('private_roof'))
+            loader.add_value('apartment_in_villa', listing.get('apartment_in_villa'))
+            loader.add_value('two_entrances', listing.get('two_entrances'))
+            loader.add_value('special_entrance', listing.get('special_entrance'))
+            
+            yield loader.load_item()
 
     def generate_json_data(self, from_value=0, size_value=0):
         json_data = {
