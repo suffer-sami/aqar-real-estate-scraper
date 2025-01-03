@@ -2,23 +2,11 @@ import json
 import os
 import scrapy
 from aqar_saudi_data.items import AqarItem, AqarItemLoader
-BASE_URL = 'https://sa.aqar.fm'
+from aqar_saudi_data.settings import BASE_URL
 
 class AqarSpider(scrapy.Spider):
     name = "aqar"
     allowed_domains = ["aqar.fm"]
-
-    headers = {
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.9',
-        'app-version': '0.20.44',
-        'content-type': 'application/json',
-        'dpr': '1.25',
-        'origin': BASE_URL,
-        'priority': 'u=1, i',
-        'referer': BASE_URL,
-        'req-app': 'web',
-    }
 
     meta = {
         "zyte_api_automap": {
@@ -33,7 +21,6 @@ class AqarSpider(scrapy.Spider):
         yield scrapy.Request(
             url=f'{BASE_URL}/graphql',
             method='POST',
-            headers=self.headers,
             body=json.dumps(json_data),
             callback=self.parse_total,
             meta=self.meta,
@@ -54,7 +41,6 @@ class AqarSpider(scrapy.Spider):
             yield response.follow(
                 url=f'{BASE_URL}/graphql',
                 method='POST',
-                headers=self.headers,
                 body=json.dumps(json_data),
                 callback=self.parse,
                 meta=self.meta,

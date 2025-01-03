@@ -17,6 +17,7 @@ ZYTE_API_KEY = os.getenv("ZYTE_API_KEY")
 if not ZYTE_API_KEY:
     raise ValueError("ZYTE_API_KEY is not set in the environment variables")
 
+BASE_URL = 'https://sa.aqar.fm'
 
 BOT_NAME = "aqar_saudi_data"
 
@@ -50,10 +51,17 @@ ROBOTSTXT_OBEY = False
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-#    "Accept-Language": "en",
-#}
+DEFAULT_REQUEST_HEADERS = {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+        'app-version': '0.20.44',
+        'content-type': 'application/json',
+        'dpr': '1.25',
+        'origin': BASE_URL,
+        'priority': 'u=1, i',
+        'referer': BASE_URL,
+        'req-app': 'web',
+}
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
